@@ -40,6 +40,7 @@ from .asset_pricing.model import (
     LinearFactorModelGMM,
     TradedFactorModel,
 )
+from .iv.absorbing import AbsorbingLS
 from .iv.model import _OLS, IV2SLS, IVGMM, IVGMMCUE, IVLIML
 from .panel.model import (
     BetweenOLS,
@@ -58,6 +59,7 @@ DROP_MISSING = os.environ.get("LINEARMODELS_DROP_MISSING", True)
 DROP_MISSING = False if DROP_MISSING in ("0", "False") else True
 
 __all__ = [
+    "AbsorbingLS",
     "PooledOLS",
     "PanelOLS",
     "FirstDifferenceOLS",
@@ -84,7 +86,8 @@ def test(
     extra_args: Optional[Union[str, List[str]]] = None,
     exit: bool = True,
     append: bool = True,
-) -> None:
+    location: str = "",
+) -> int:
     import sys
 
     try:
@@ -102,12 +105,20 @@ def test(
             cmd += pytest_args[:]
         else:
             cmd = pytest_args
+    print(location)
     pkg = os.path.dirname(__file__)
+    print(pkg)
+    if location:
+        pkg = os.path.abspath(os.path.join(pkg, location))
+        print(pkg)
+    if not os.path.exists(pkg):
+        raise RuntimeError(f"{pkg} was not found. Unable to run tests")
     cmd = [pkg] + cmd
     print("running: pytest {}".format(" ".join(cmd)))
     status = pytest.main(cmd)
     if exit:
         sys.exit(status)
+    return status
 
 
 __version__ = get_versions()["version"]
